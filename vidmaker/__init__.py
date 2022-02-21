@@ -63,6 +63,7 @@ class Video:
         frames = os.listdir(self.tmp_dir)
         _range = frames
         if verbose:
+            print(f"Location: {self.path}")
             print("Format: .mp4")
             print(f"Resolution: {tuple(self.res)}")
             print(f"FPS: {self.fps}")
@@ -78,3 +79,11 @@ class Video:
         video.release()
         cv2.destroyAllWindows()
         shutil.rmtree(self.tmp_dir)
+
+        if verbose:
+            vid_size = os.stat(self.path).st_size
+            for unit in ["bytes", "KB", "MB", "GB", "TB"]:
+                if vid_size < 1024:
+                    print(f"File size: {round(vid_size, 2)} {unit}")
+                    break
+                vid_size /= 1024

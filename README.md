@@ -67,7 +67,7 @@ Once your program finishes, you just have to export your video
 video.export(verbose=True)
 ```
 
-That's it! You should find your video fully rendered at the given path, but the longer the video, the longer `video.export()` takes. I tested over 1000fps during exporting on my computer and it should be even faster without verbose. The speed does depend on your computer though.
+That's it! You should find your video fully rendered at the given path, but the longer the video, the longer `video.export()` takes. I tested this example at over 1000fps during exporting on my computer and it should be even faster without verbose. The speed does heavily depend of what you are exporting and your computer.
 
 ## Contributing
 

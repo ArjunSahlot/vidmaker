@@ -17,10 +17,11 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import shutil
 import numpy as np
 import cv2
 import tempfile
-from pathlib import Path
+import os
 
 
 class Video:
@@ -36,8 +37,8 @@ class Video:
         self.auto = isinstance(resolution, str)
         self.res = np.array((0, 0)) if self.auto else resolution
         self.fps = fps
-        self.path = Path(path)
-        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.path = path
+        self.tmp_dir = tempfile.mkdtemp()
         self.frame = 0
 
     def update(self, frame: np.ndarray):
@@ -49,17 +50,22 @@ class Video:
         if self.auto:
             self.res = np.maximum(self.res, frame.shape[:2])
 
-        cv2.imwrite(self.path / f"vidmaker_{self.frame}.png")
+        cv2.imwrite(self.tmp_dir + f"/vidmaker_{self.frame}.png", frame)
+        self.frame += 1
 
     def export(self):
         """
         Export the generated video.
         """
         video = cv2.VideoWriter(
-            self.path, cv2.VideoWriter_fourcc(*"MPEG"), self.fps, self.res
+            self.path, cv2.VideoWriter_fourcc(*"MPEG"), self.fps, tuple(self.res)
         )
-        for frame in Path(self.tmp_dir).iterdir():
-            video.write(cv2.imread(frame))
+        for frame in os.listdir(self.tmp_dir):
+            video.write(
+                cv2.cvtColor(
+                    cv2.imread(os.path.join(self.tmp_dir, frame)), cv2.COLOR_BGR2RGB
+                )
+            )
         video.release()
         cv2.destroyAllWindows()
-        self.tmp_dir.cleanup()
+        shutil.rmtree(self.tmp_dir)

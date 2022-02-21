@@ -63,7 +63,11 @@ class Video:
         frames = os.listdir(self.tmp_dir)
         _range = frames
         if verbose:
+            print("Format: .mp4")
+            print(f"Resolution: {tuple(self.res)}")
+            print(f"FPS: {self.fps}")
             from tqdm import tqdm
+
             _range = tqdm(frames, unit="frames", desc="Compiling")
         for frame in _range:
             video.write(

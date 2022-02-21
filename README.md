@@ -1,2 +1,3 @@
-# module_template
-A template for a pypi python module.
+# vidmaker
+
+A python library which simplifies creating and exporting videos.

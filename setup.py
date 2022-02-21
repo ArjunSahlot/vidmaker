@@ -11,17 +11,17 @@ with open(os.path.join(PARDIR, "requirements.txt")) as f:
 
 
 setuptools.setup(
-    name="tensornn",
+    name="vidmaker",
     version=os.getenv("PYPI_VERSION").split("/")[-1].strip(),
     author="Arjun Sahlot",
     author_email="iarjun.sahlot@gmail.com",
-    description="A module template.",
+    description="A python library which simplifies creating and exporting videos.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license="GNU GPL v3",
-    url="https://github.com/ArjunSahlot/",
-    keywords=["module"],
-    py_modules=["module"],
+    url="https://github.com/ArjunSahlot/vidmaker",
+    keywords=["videomaker"],
+    py_modules=["vidmaker"],
     packages=setuptools.find_packages(),
     install_requires=reqs,
     python_requires=">=3",

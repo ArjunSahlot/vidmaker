@@ -5,7 +5,7 @@ FPS = 60
 
 # Window Management
 WINDOW = pygame.display.set_mode((300, 300))
-video = vidmaker.Video(".", FPS)
+video = vidmaker.Video("/home/arjun/asdf.mp4", FPS)
 pygame.display.set_caption("vidmaker test")
 
 

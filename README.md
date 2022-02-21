@@ -14,7 +14,7 @@ Since this is a python library, install it by `pip install vidmaker`
 
 Currently vidmaker only has one class, `Video`, making it extremely simple to use.
 
-First, you have to initialize your video with the path you want it to render at the fps and the resolution\*
+First, you have to initialize your video with the path you want it to render at the fps and the resolution\*. Always include the ".mp4" ending to the path, vidmaker DOES NOT do it for you.
 
 ```py
 import vidmaker
@@ -64,10 +64,10 @@ main(WINDOW)
 Once your program finishes, you just have to export your video
 
 ```py
-video.export()
+video.export(verbose=True)
 ```
 
-That's it! You should find your video fully rendered at the given path, but the longer the video, the longer `video.export()` takes.
+That's it! You should find your video fully rendered at the given path, but the longer the video, the longer `video.export()` takes. I tested over 1000fps during exporting on my computer and it should be even faster without verbose. The speed does depend on your computer though.
 
 ## Contributing
 

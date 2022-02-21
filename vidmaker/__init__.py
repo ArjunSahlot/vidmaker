@@ -53,14 +53,19 @@ class Video:
         cv2.imwrite(self.tmp_dir + f"/vidmaker_{self.frame}.png", frame)
         self.frame += 1
 
-    def export(self):
+    def export(self, verbose=False):
         """
         Export the generated video.
         """
         video = cv2.VideoWriter(
             self.path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, tuple(self.res)
         )
-        for frame in os.listdir(self.tmp_dir):
+        frames = os.listdir(self.tmp_dir)
+        _range = frames
+        if verbose:
+            from tqdm import tqdm
+            _range = tqdm(frames, unit="frames", desc="Compiling")
+        for frame in _range:
             video.write(
                 cv2.cvtColor(
                     cv2.imread(os.path.join(self.tmp_dir, frame)), cv2.COLOR_BGR2RGB

@@ -33,4 +33,4 @@ def main(window):
 
 
 main(WINDOW)
-video.export()
+video.export(True)

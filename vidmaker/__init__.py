@@ -17,4 +17,49 @@
 #  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-WORKING = True
+import numpy as np
+import cv2
+import tempfile
+from pathlib import Path
+
+
+class Video:
+    def __init__(self, path, fps, resolution="AUTO"):
+        """
+        Initialize video class.
+
+        :param resolution: the resolution of the video you want to export
+        :param fps: the frames per second of the video you want to export
+        :param path: the export path of the video you want to export
+        """
+
+        self.auto = isinstance(resolution, str)
+        self.res = np.array((0, 0)) if self.auto else resolution
+        self.fps = fps
+        self.path = Path(path)
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.frame = 0
+
+    def update(self, frame: np.ndarray):
+        """
+        Get frame updates and save them in tmp dir. Later compile on export.
+
+        :param frame: next frame to be rendered
+        """
+        if self.auto:
+            self.res = np.maximum(self.res, frame.shape[:2])
+
+        cv2.imwrite(self.path / f"vidmaker_{self.frame}.png")
+
+    def export(self):
+        """
+        Export the generated video.
+        """
+        video = cv2.VideoWriter(
+            self.path, cv2.VideoWriter_fourcc(*"MPEG"), self.fps, self.res
+        )
+        for frame in Path(self.tmp_dir).iterdir():
+            video.write(cv2.imread(frame))
+        video.release()
+        cv2.destroyAllWindows()
+        self.tmp_dir.cleanup()

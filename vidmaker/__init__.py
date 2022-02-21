@@ -58,7 +58,7 @@ class Video:
         Export the generated video.
         """
         video = cv2.VideoWriter(
-            self.path, cv2.VideoWriter_fourcc(*"MPEG"), self.fps, tuple(self.res)
+            self.path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, tuple(self.res)
         )
         for frame in os.listdir(self.tmp_dir):
             video.write(

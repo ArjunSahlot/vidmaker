@@ -30,7 +30,6 @@ import vidmaker
 
 FPS = 60
 
-# Window Management
 WINDOW = pygame.display.set_mode((300, 300))
 video = vidmaker.Video(".", FPS)
 pygame.display.set_caption("vidmaker test")
@@ -69,3 +68,7 @@ video.export()
 ```
 
 That's it! You should find your video fully rendered at the given path, but the longer the video, the longer `video.export()` takes.
+
+## Contributing
+
+Contributing is always appreciated! I would love it if anyone was to make a pull request to add another feature or create an issue post. Possible features could be things like an option to use memory instead of disk space, the option to render videos in different formats (only mp4 right now), and many more. If there is enough demand I might add some myself as well. Thanks for the support!

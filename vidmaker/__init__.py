@@ -18,6 +18,7 @@
 #
 
 import shutil
+import time
 import numpy as np
 import cv2
 import tempfile
@@ -35,11 +36,12 @@ class Video:
         """
 
         self.auto = isinstance(resolution, str)
-        self.res = np.array((0, 0)) if self.auto else resolution
+        self.res = np.array((0, 0)) if self.auto else np.array(resolution)
         self.fps = fps
         self.path = path
         self.tmp_dir = tempfile.mkdtemp()
         self.frame = 0
+        self.frames = []
 
     def update(self, frame: np.ndarray):
         """
@@ -50,18 +52,20 @@ class Video:
         if self.auto:
             self.res = np.maximum(self.res, frame.shape[:2])
 
-        cv2.imwrite(self.tmp_dir + f"/vidmaker_{self.frame}.png", frame)
+        saved = os.path.join(self.tmp_dir, f"vidmaker_{self.frame}.png")
+        cv2.imwrite(saved, frame)
+        self.frames.append(saved)
         self.frame += 1
 
     def export(self, verbose=False):
         """
         Export the generated video.
         """
+        self.res = self.res[::-1]
         video = cv2.VideoWriter(
             self.path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, tuple(self.res)
         )
-        frames = os.listdir(self.tmp_dir)
-        _range = frames
+        frames = self.frames
         if verbose:
             print(f"Location: {self.path}")
             print("Format: .mp4")
@@ -69,13 +73,15 @@ class Video:
             print(f"FPS: {self.fps}")
             from tqdm import tqdm
 
-            _range = tqdm(frames, unit="frames", desc="Compiling")
-        for frame in _range:
-            video.write(
-                cv2.cvtColor(
-                    cv2.imread(os.path.join(self.tmp_dir, frame)), cv2.COLOR_BGR2RGB
-                )
+            frames = tqdm(self.frames, unit="frames", desc="Compiling")
+
+        for frame in frames:
+            img = cv2.cvtColor(
+                cv2.imread(os.path.join(self.tmp_dir, frame)),
+                cv2.COLOR_BGR2RGB,
             )
+            video.write(img)
+
         video.release()
         cv2.destroyAllWindows()
         shutil.rmtree(self.tmp_dir)

@@ -54,7 +54,7 @@ def main(window):
                     pygame.quit()
                     return
 
-        video.update(pygame.surfarray.pixels3d(window))  # THIS LINE
+        video.update(pygame.surfarray.pixels3d(window).swapaxes(0, 1))  # THIS LINE
         pygame.display.update()
 
 

@@ -19,7 +19,7 @@ First, you have to initialize your video with the path you want it to render at 
 ```py
 import vidmaker
 
-video = vidmaker.Video(path="vidmaker.mp4", fps=60, resolution="AUTO")
+video = vidmaker.Video(path="vidmaker.mp4", fps="AUTO", resolution="AUTO")
 ```
 
 Then you have to update the video every frame with the image you want it to add to your video.
@@ -31,7 +31,7 @@ import vidmaker
 FPS = 60
 
 WINDOW = pygame.display.set_mode((300, 300))
-video = vidmaker.Video("vidmaker.mp4", FPS)
+video = vidmaker.Video("vidmaker.mp4")
 pygame.display.set_caption("vidmaker test")
 
 

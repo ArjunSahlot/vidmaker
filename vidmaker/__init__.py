@@ -26,7 +26,7 @@ import os
 
 
 class Video:
-    def __init__(self, path, fps, resolution="AUTO"):
+    def __init__(self, path, fps="AUTO", resolution="AUTO"):
         """
         Initialize video class.
 
@@ -35,13 +35,16 @@ class Video:
         :param path: the export path of the video you want to export
         """
 
-        self.auto = isinstance(resolution, str)
-        self.res = np.array((0, 0)) if self.auto else np.array(resolution)
+        self.auto_res = isinstance(resolution, str)
+        self.res = np.array((0, 0)) if self.auto_res else np.array(resolution)
+        self.auto_fps = isinstance(fps, str)
         self.fps = fps
         self.path = path
         self.tmp_dir = tempfile.mkdtemp()
         self.frame = 0
         self.frames = []
+        self.buffers = np.array([])  # time between each frame input (for auto fps)
+        self.last_time = time.time_ns()  # var to help with buffers (for auto fps)
 
     def update(self, frame: np.ndarray):
         """
@@ -49,7 +52,7 @@ class Video:
 
         :param frame: next frame to be rendered
         """
-        if self.auto:
+        if self.auto_res:
             self.res = np.maximum(self.res, frame.shape[:2])
 
         saved = os.path.join(self.tmp_dir, f"vidmaker_{self.frame}.png")
@@ -57,11 +60,20 @@ class Video:
         self.frames.append(saved)
         self.frame += 1
 
+        if self.auto_fps:
+            self.buffers = np.append(self.buffers, time.time_ns() - self.last_time)
+            self.last_time = time.time_ns()
+
     def export(self, verbose=False):
         """
         Export the generated video.
         """
-        self.res = self.res[::-1]
+
+        if self.auto_res:
+            self.res = self.res[::-1]
+        if self.auto_fps:
+            self.fps = 60000000000 / np.mean(self.buffers)
+
         video = cv2.VideoWriter(
             self.path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, tuple(self.res)
         )

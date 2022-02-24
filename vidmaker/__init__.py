@@ -26,13 +26,15 @@ import os
 
 
 class Video:
-    def __init__(self, path, fps="AUTO", resolution="AUTO"):
+    def __init__(self, path, fps="AUTO", resolution="AUTO", img_ext="jpg", cap=0):
         """
         Initialize video class.
 
-        :param resolution: the resolution of the video you want to export
-        :param fps: the frames per second of the video you want to export
         :param path: the export path of the video you want to export
+        :param fps: the frames per second of the video you want to export, defaults to AUTO
+        :param resolution: the resolution of the video you want to export, defaults to AUTO
+        :param img_ext: the extension of the tmp image files, defaults to jpg
+        :param cap: crash if video reaches length of _ hrs (worsens performance), defaults to 0 (no cap)
         """
 
         self.auto_res = isinstance(resolution, str)
@@ -43,8 +45,11 @@ class Video:
         self.tmp_dir = tempfile.mkdtemp()
         self.frame = 0
         self.frames = []
-        self.buffers = np.array([])  # time between each frame input (for auto fps)
-        self.last_time = time.time_ns()  # var to help with buffers (for auto fps)
+        self.start_time = 0
+        self.end_time = 0
+        self.img_ext = img_ext
+        self.cap = cap
+        self.check_cap = cap != 0
 
     def update(self, frame: np.ndarray):
         """
@@ -55,24 +60,35 @@ class Video:
         if self.auto_res:
             self.res = np.maximum(self.res, frame.shape[:2])
 
-        saved = os.path.join(self.tmp_dir, f"vidmaker_{self.frame}.png")
+        saved = os.path.join(self.tmp_dir, f"vidmaker_{self.frame}.{self.img_ext}")
         cv2.imwrite(saved, frame)
         self.frames.append(saved)
         self.frame += 1
 
-        if self.auto_fps:
-            self.buffers = np.append(self.buffers, time.time_ns() - self.last_time)
-            self.last_time = time.time_ns()
+        if self.frame == 1:
+            self.start_time = time.time_ns()
+        else:
+            self.end_time = time.time_ns()
+
+        if self.check_cap:
+            if ((self.end_time - self.start_time) / 36000000000) > self.cap:
+                print("Video cap reached, exporting and quiting...")
+                self.export(True)
+                raise SystemExit("vidmaker crashed because video length hit cap")
 
     def export(self, verbose=False):
         """
         Export the generated video.
+
+        :param verbose: allow useful infomation to be outputted, defaults to False
         """
 
         if self.auto_res:
             self.res = self.res[::-1]
+
+        secs = (self.end_time - self.start_time) / 1000000000
         if self.auto_fps:
-            self.fps = 60000000000 / np.mean(self.buffers)
+            self.fps = round(self.frame / secs, 2)
 
         video = cv2.VideoWriter(
             self.path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, tuple(self.res)
@@ -83,6 +99,18 @@ class Video:
             print("Format: .mp4")
             print(f"Resolution: {tuple(self.res)}")
             print(f"FPS: {self.fps}")
+
+            m, s = divmod(secs, 60)
+            h, m = divmod(m, 60)
+            time_output = []
+            if h > 0:
+                time_output.append(f"{round(h, 1)} hours")
+            if m > 0:
+                time_output.append(f"{round(m, 1)} minutes")
+            if s > 0:
+                time_output.append(f"{round(s, 1)} seconds")
+            print(f"Duration: {', '.join(time_output)}")
+
             from tqdm import tqdm
 
             frames = tqdm(self.frames, unit="frames", desc="Compiling")

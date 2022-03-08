@@ -26,7 +26,15 @@ import os
 
 
 class Video:
-    def __init__(self, path, fps="AUTO", resolution="AUTO", img_ext="jpg", cap=0):
+    def __init__(
+        self,
+        path,
+        fps="AUTO",
+        resolution="AUTO",
+        late_export=False,
+        img_ext="jpg",
+        cap=0,
+    ):
         """
         Initialize video class.
 
@@ -50,6 +58,17 @@ class Video:
         self.img_ext = img_ext
         self.cap = cap
         self.check_cap = cap != 0
+        self.late_export = late_export
+
+        if not late_export:
+            if self.auto_res or self.auto_fps:
+                raise ValueError(
+                    "Need to specify fps and resolution if not doing late export."
+                )
+
+            self.video = cv2.VideoWriter(
+                self.path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, tuple(self.res)
+            )
 
     def update(self, frame: np.ndarray):
         """
@@ -60,11 +79,14 @@ class Video:
         if self.auto_res:
             self.res = np.maximum(self.res, frame.shape[:2])
 
-        saved = os.path.join(self.tmp_dir, f"vidmaker_{self.frame}.{self.img_ext}")
-        cv2.imwrite(saved, frame)
-        self.frames.append(saved)
-        self.frame += 1
+        if self.late_export:
+            saved = os.path.join(self.tmp_dir, f"vidmaker_{self.frame}.{self.img_ext}")
+            cv2.imwrite(saved, frame)
+            self.frames.append(saved)
+        else:
+            self.video.write(frame)
 
+        self.frame += 1
         if self.frame == 1:
             self.start_time = time.time_ns()
         else:
@@ -86,13 +108,16 @@ class Video:
         if self.auto_res:
             self.res = self.res[::-1]
 
-        secs = (self.end_time - self.start_time) / 1000000000
         if self.auto_fps:
             self.fps = round(self.frame / secs, 2)
 
-        video = cv2.VideoWriter(
-            self.path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, tuple(self.res)
-        )
+        if self.late_export:
+            video = cv2.VideoWriter(
+                self.path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, tuple(self.res)
+            )
+
+        secs = (self.end_time - self.start_time) / 1000000000
+
         frames = self.frames
         if verbose:
             print(f"Location: {self.path}")
@@ -111,25 +136,90 @@ class Video:
                 time_output.append(f"{round(s, 1)} seconds")
             print(f"Duration: {', '.join(time_output)}")
 
-            from tqdm import tqdm
+            if self.late_export:
+                try:
+                    from tqdm import tqdm
 
-            frames = tqdm(self.frames, unit="frames", desc="Compiling")
+                    frames = tqdm(self.frames, unit="frames", desc="Compiling")
+                except ModuleNotFoundError:
+                    print("pip install tqdm to have better verbose")
 
-        for frame in frames:
-            img = cv2.cvtColor(
-                cv2.imread(os.path.join(self.tmp_dir, frame)),
-                cv2.COLOR_BGR2RGB,
-            )
-            video.write(img)
+        if self.late_export:
+            for frame in frames:
+                img = cv2.cvtColor(
+                    cv2.imread(os.path.join(self.tmp_dir, frame)),
+                    cv2.COLOR_BGR2RGB,
+                )
+                video.write(img)
+            video.release()
+        else:
+            self.video.release()
 
-        video.release()
         cv2.destroyAllWindows()
         shutil.rmtree(self.tmp_dir)
 
         if verbose:
-            vid_size = os.stat(self.path).st_size
-            for unit in ["bytes", "KB", "MB", "GB", "TB"]:
-                if vid_size < 1024:
-                    print(f"File size: {round(vid_size, 2)} {unit}")
-                    break
-                vid_size /= 1024
+            print(self._output_size(self.path))
+
+    def compress(self, target_size="AUTO", new_file=True, verbose=False, debug=False):
+        """
+        Compress your video after exporting it.
+
+        :param target_size: the size you want your compressed video to be, defaults to "AUTO"
+        :param new_file: if this is true it will not override original export, useful when trying to tweak compression settings, defaults to False
+        :param verbose: whether or not to show useful output, defaults to False
+        :param debug: whether or not to show debugging output (ffmpeg output), defaults to False
+        """
+
+        try:
+            import ffmpeg
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+                "ffmpeg-python is required to run vidmaker.Video.compress"
+            )
+
+        file, ext = os.path.splitext(self.path)
+        compressed_path = file + "_compressed" + ext
+
+        probe = ffmpeg.probe(self.path)
+        duration = float(probe["format"]["duration"])
+        best_bitrate = 100000
+        best_min_size = best_bitrate * 1.073741824 * duration / (8 * 1024)
+
+        if target_size == "AUTO":
+            bitrate = best_bitrate
+        else:
+            bitrate = (target_size * 1024 * 8) / (1.073741824 * duration)
+            if bitrate < best_bitrate:
+                print(
+                    f"Likely bad quality. Try with target_size as {round(best_min_size, 2)} KB, or set to 'AUTO'"
+                )
+            if bitrate < 1000:
+                print(
+                    "Bitrate is extremely low, can't compress. Try again with target_size larger, or set to 'AUTO'"
+                )
+                return
+
+        i = ffmpeg.input(self.path)
+        ffmpeg.output(
+            i,
+            compressed_path,
+            **{"c:v": "libx264", "b:v": bitrate, "pass": 1, "f": "mp4"},
+            loglevel="error" if debug else "quiet",
+        ).run()
+        if verbose:
+            print(f"After compressing, f{self._output_size(compressed_path)[1:]}")
+
+        if not new_file:
+            if verbose:
+                print("Overriding original export....", end="")
+            os.rename(compressed_path, self.path)
+            if verbose:
+                print("done")
+
+    def _output_size(self, path):
+        vid_size = os.stat(path).st_size
+        for unit in ["bytes", "KB", "MB", "GB", "TB"]:
+            if vid_size < 1024:
+                return f"File size: {round(vid_size, 2)} {unit}"
+            vid_size /= 1024

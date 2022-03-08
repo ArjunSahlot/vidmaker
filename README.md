@@ -19,7 +19,7 @@ First, you have to initialize your video with the path you want it to render at 
 ```py
 import vidmaker
 
-video = vidmaker.Video(path="vidmaker.mp4", fps="AUTO", resolution="AUTO")
+video = vidmaker.Video(path="vidmaker.mp4", fps=60, resolution=(300, 300))
 ```
 
 Then you have to update the video every frame with the image you want it to add to your video.
@@ -67,7 +67,20 @@ Once your program finishes, you just have to export your video
 video.export(verbose=True)
 ```
 
-That's it! You should find your video fully rendered at the given path, but the longer the video, the longer `video.export()` takes. I tested around 100fps during exporting on my computer and it should be even faster without verbose. The speed does heavily depend of what you are exporting and your computer.
+If you have a long video, you may consider compressing it to a smaller file size. vidmaker offers custom compression although it requires ffmpeg and is not super accurate, although very useful. If your desired compression settings don't turn out as intended, you can just run recompress again with the rest of the code commented out.
+
+```py
+video.compress(target_size=1024, new_file=True)  # target_size is in KB
+```
+
+```py
+"""
+Old code of unsuccessful compression
+"""
+video.compress(target_size=2048, new_file=True)  # keep testing different compression sizes until you find a good one
+```
+
+That's it! You should find your video fully rendered at the given path, but the longer the video, the longer `video.export()` and `video.compress()` takes. I tested around 100fps during exporting on my computer and it should be even faster without verbose; compression is also much faster than export. The speed does heavily depend of what you are exporting and your computer.
 
 ## Contributing
 

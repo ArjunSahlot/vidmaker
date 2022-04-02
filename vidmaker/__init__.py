@@ -161,11 +161,11 @@ class Video:
         if verbose:
             print(self._output_size(self.path))
 
-    def compress(self, target_size="AUTO", new_file=True, verbose=False, debug=False):
+    def compress(self, target_size=None, new_file=True, verbose=False, debug=False):
         """
         Compress your video after exporting it.
 
-        :param target_size: the size you want your compressed video to be, defaults to "AUTO"
+        :param target_size: the percent of the original size you want your compressed video to be, defaults to 0.5 (50%)
         :param new_file: if this is true it will not override original export, useful when trying to tweak compression settings, defaults to False
         :param verbose: whether or not to show useful output, defaults to False
         :param debug: whether or not to show debugging output (ffmpeg output), defaults to False
@@ -180,25 +180,20 @@ class Video:
 
         file, ext = os.path.splitext(self.path)
         compressed_path = file + "_compressed" + ext
+        
+        if target_size is None:
+            target_size = 0.5
+        target_size = target_size*os.stat(self.path).st_size/1024
 
         probe = ffmpeg.probe(self.path)
         duration = float(probe["format"]["duration"])
-        best_bitrate = 100000
-        best_min_size = best_bitrate * 1.073741824 * duration / (8 * 1024)
 
-        if target_size == "AUTO":
-            bitrate = best_bitrate
-        else:
-            bitrate = (target_size * 1024 * 8) / (1.073741824 * duration)
-            if bitrate < best_bitrate:
-                print(
-                    f"Likely bad quality. Try with target_size as {round(best_min_size, 2)} KB, or set to 'AUTO'"
-                )
-            if bitrate < 1000:
-                print(
-                    "Bitrate is extremely low, can't compress. Try again with target_size larger, or set to 'AUTO'"
-                )
-                return
+        bitrate = (target_size * 1024 * 8) / (1.073741824 * duration)
+        if bitrate < 1000:
+            print(
+                "Bitrate is extremely low, can't compress. Setting bitrate to minimum value..."
+            )
+            bitrate = 1000
 
         i = ffmpeg.input(self.path)
         ffmpeg.output(

@@ -67,7 +67,7 @@ Once your program finishes, you just have to export your video
 video.export(verbose=True)
 ```
 
-If you have a long video, you may consider compressing it to a smaller file size. vidmaker offers custom compression although it requires ffmpeg and is not super accurate, although very useful. If your desired compression settings don't turn out as intended, you can just run recompress again with the rest of the code commented out.
+If you have a long video, you may consider compressing it to a smaller file size. vidmaker offers custom compression although it requires ffmpeg and is not super accurate, although very useful. If your desired compression settings don't turn out as intended, you can just run compress again with the rest of the code commented out.
 
 ```py
 video.compress(target_size=1024, new_file=True)  # target_size is in KB

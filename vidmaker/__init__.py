@@ -104,6 +104,8 @@ class Video:
 
         :param verbose: allow useful infomation to be outputted, defaults to False
         """
+        
+        secs = (self.end_time - self.start_time) / 1000000000
 
         if self.auto_res:
             self.res = self.res[::-1]
@@ -115,8 +117,6 @@ class Video:
             video = cv2.VideoWriter(
                 self.path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, tuple(self.res)
             )
-
-        secs = (self.end_time - self.start_time) / 1000000000
 
         frames = self.frames
         if verbose:

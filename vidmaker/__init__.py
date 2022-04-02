@@ -201,7 +201,7 @@ class Video:
             compressed_path,
             **{"c:v": "libx264", "b:v": bitrate, "pass": 1, "f": "mp4"},
             loglevel="error" if debug else "quiet",
-        ).run()
+        ).overwrite_output().run()
         if verbose:
             print(f"After compressing, f{self._output_size(compressed_path)[1:]}")
 

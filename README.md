@@ -80,7 +80,7 @@ Old code of unsuccessful compression
 video.compress(target_size=2048, new_file=True)  # keep testing different compression sizes until you find a good one
 ```
 
-That's it! You should find your video fully rendered at the given path, but the longer the video, the longer `video.export()` and `video.compress()` takes. I tested around 100fps during exporting on my computer and it should be even faster without verbose; compression is also much faster than export. The speed does heavily depend of what you are exporting and your computer.
+That's it! You should find your video fully rendered at the given path, but the longer the video, the longer `video.export()` and `video.compress()` take. I tested around 100fps during exporting on my computer and it should be even faster without verbose; compression is also much faster than export. The speed does heavily depend of what you are exporting and your computer.
 
 ## Contributing
 

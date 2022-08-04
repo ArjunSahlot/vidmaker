@@ -56,7 +56,7 @@ def main(window):
                     return
 
         # set inverted=True if your colors are inverted
-        video.update(pygame.surfarray.pixels3d(window).swapaxes(0, 1), inverted=False)  # THIS LINE
+        video.update(pygame.surfarray.pixels3d(window).swapaxes(0, 1), inverted=False) # THIS LINE
         pygame.display.update()
 
 

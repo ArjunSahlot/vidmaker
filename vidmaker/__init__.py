@@ -70,12 +70,16 @@ class Video:
                 self.path, cv2.VideoWriter_fourcc(*"mp4v"), self.fps, tuple(self.res)
             )
 
-    def update(self, frame: np.ndarray):
+    def update(self, frame: np.ndarray, inverted: bool = False):
         """
         Get frame updates and save them in tmp dir. Later compile on export.
 
         :param frame: next frame to be rendered
+        :param inverted: if the colors are inverted set this value to true
         """
+        if inverted:
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
         if self.auto_res:
             self.res = np.maximum(self.res, frame.shape[:2])
 

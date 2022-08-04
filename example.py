@@ -3,8 +3,8 @@ import vidmaker
 
 FPS = 60
 
-# Window Management
 WINDOW = pygame.display.set_mode((300, 300))
+# If fps and resolution are auto then late_export has to be True
 video = vidmaker.Video("vidmaker.mp4", late_export=True)
 pygame.display.set_caption("vidmaker test")
 
@@ -28,7 +28,8 @@ def main(window):
                     pygame.quit()
                     return
 
-        video.update(pygame.surfarray.pixels3d(window).swapaxes(0, 1))
+        # set inverted=True if your colors are inverted
+        video.update(pygame.surfarray.pixels3d(window).swapaxes(0, 1), inverted=False)
         pygame.display.update()
 
 

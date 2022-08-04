@@ -14,7 +14,7 @@ Since this is a python library, install it by `pip install vidmaker`
 
 Currently vidmaker only has one class, `Video`, making it extremely simple to use.
 
-First, you have to initialize your video with the path you want it to render at the fps and the resolution\*. Always include the ".mp4" ending to the path, vidmaker DOES NOT do it for you.
+First, you have to initialize your video with the path you want it to render at the fps and the resolution. Always include the ".mp4" ending to the path, vidmaker DOES NOT do it for you.
 
 ```py
 import vidmaker
@@ -31,7 +31,8 @@ import vidmaker
 FPS = 60
 
 WINDOW = pygame.display.set_mode((300, 300))
-video = vidmaker.Video("vidmaker.mp4")
+# If fps and resolution are auto then late_export has to be True
+video = vidmaker.Video("vidmaker.mp4", late_export=True)
 pygame.display.set_caption("vidmaker test")
 
 
@@ -54,7 +55,8 @@ def main(window):
                     pygame.quit()
                     return
 
-        video.update(pygame.surfarray.pixels3d(window).swapaxes(0, 1))  # THIS LINE
+        # set inverted=True if your colors are inverted
+        video.update(pygame.surfarray.pixels3d(window).swapaxes(0, 1), inverted=False)  # THIS LINE
         pygame.display.update()
 
 

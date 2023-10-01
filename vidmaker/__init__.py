@@ -77,7 +77,7 @@ class Video:
         :param frame: next frame to be rendered
         :param inverted: if the colors are inverted set this value to true
         """
-        if inverted:
+        if not inverted:
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         if self.auto_res:
